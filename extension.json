@@ -1,0 +1,11 @@
+{
+  "id": "icon-selector",
+  "name": "icon-selector",
+  "srcdoc": "./build/index.html",
+  "fieldTypes": [
+    "Symbol",
+    "Symbols",
+    "Text",
+    "Object"
+  ]
+}
