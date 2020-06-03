@@ -23,6 +23,21 @@ const ICONS: IconItem[] = [
     title: 'Fighter Jet',
     id: 'FIGHTER_JET',
     svg: FighterJet
+  },
+  {
+    title: 'Pram',
+    id: 'PRAM',
+    svg: Pram
+  },
+  {
+    title: 'Shopping Cart',
+    id: 'SHOPPING_CART',
+    svg: ShoppingCart
+  },
+  {
+    title: 'Truck',
+    id: 'TRUCK',
+    svg: Truck
   }
 ];
 
@@ -100,19 +115,13 @@ const App: React.FC<AppMain> = props => {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         key={Date.now()} // Force Reinit
-        style={{ minHeight: '128px' }}
-        thumbnailElement={
-          <div
-            style={{
-              height: '100%',
-              width: '100%'
-            }}
-          />
-        }
+        style={{ minHeight: '242px' }}
+        position="bottom-left"
         toggleElement={
           <Button
-            size="medium"
+            size="small"
             buttonType="muted"
+            isFullWidth={true}
             indicateDropdown
             onClick={() => setIsOpen(!isOpen)}>
             Choose Icon
@@ -120,7 +129,8 @@ const App: React.FC<AppMain> = props => {
         }>
         <DropdownList maxHeight={175}>
           {ICONS.map(icon => (
-            <DropdownListItem onClick={e => console.log(e.currentTarget.value)}>
+            <DropdownListItem key={icon.id} onClick={e => console.log(e.currentTarget.value)}>
+              {/* <icon.svg/> */}
               {icon.title}
             </DropdownListItem>
           ))}
