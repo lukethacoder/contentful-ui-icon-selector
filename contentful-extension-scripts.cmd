@@ -1,17 +1,7 @@
-@ECHO off
-SETLOCAL
-CALL :find_dp0
-
-IF EXIST "%dp0%\node.exe" (
-  SET "_prog=%dp0%\node.exe"
+@IF EXIST "%~dp0\node.exe" (
+  "%~dp0\node.exe"  "%~dp0\node_modules\@contentful\contentful-extension-scripts\lib\index.js" %*
 ) ELSE (
-  SET "_prog=node"
-  SET PATHEXT=%PATHEXT:;.JS;=;%
+  @SETLOCAL
+  @SET PATHEXT=%PATHEXT:;.JS;=;%
+  node  "%~dp0\node_modules\@contentful\contentful-extension-scripts\lib\index.js" %*
 )
-
-"%_prog%"  "%dp0%\node_modules\@contentful\contentful-extension-scripts\lib\index.js" %*
-ENDLOCAL
-EXIT /b %errorlevel%
-:find_dp0
-SET dp0=%~dp0
-EXIT /b

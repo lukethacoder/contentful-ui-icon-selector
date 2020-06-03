@@ -1,68 +1,80 @@
-import * as React from 'react';
+import React, { Fragment, useEffect, useState, FC } from 'react';
 import { render } from 'react-dom';
 import { TextInput } from '@contentful/forma-36-react-components';
 import { init, FieldExtensionSDK } from 'contentful-ui-extensions-sdk';
 import '@contentful/forma-36-react-components/dist/styles.css';
 import './index.css';
 
-interface AppProps {
-  sdk: FieldExtensionSDK;
-}
+// export class App extends React.Component<AppProps, AppState> {
+//   constructor(props: AppProps) {
+//     super(props);
+//     this.state = {
+//       value: props.sdk.field.getValue() || ''
+//     };
+//   }
 
-interface AppState {
-  value?: string;
-}
+//   detachExternalChangeHandler: Function | null = null;
 
-export class App extends React.Component<AppProps, AppState> {
-  constructor(props: AppProps) {
-    super(props);
-    this.state = {
-      value: props.sdk.field.getValue() || ''
-    };
+//   componentDidMount() {
+//     this.props.sdk.window.startAutoResizer();
+
+//     // Handler for external field value changes (e.g. when multiple authors are working on the same entry).
+//     this.detachExternalChangeHandler = this.props.sdk.field.onValueChanged(this.onExternalChange);
+//   }
+
+//   componentWillUnmount() {
+//     if (this.detachExternalChangeHandler) {
+//       this.detachExternalChangeHandler();
+//     }
+//   }
+
+//   onExternalChange = (value: string) => {
+//     this.setState({ value });
+//   };
+
+//   onChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+//     const value = e.currentTarget.value;
+//     this.setState({ value });
+//     if (value) {
+//       await this.props.sdk.field.setValue(value);
+//     } else {
+//       await this.props.sdk.field.removeValue();
+//     }
+//   };
+
+//   render = () => {
+//     return (
+//       <TextInput
+//         width="large"
+//         type="text"
+//         id="my-field"
+//         testId="my-field"
+//         value={this.state.value}
+//         onChange={this.onChange}
+//       />
+//     );
+//   };
+// }
+
+const App: FC<AppMain> = props => {
+  console.log('props ', props);
+  const [value, setValue] = useState(props.sdk.field.getValue());
+
+  function onChange() {
+    console.log('onChange');
   }
 
-  detachExternalChangeHandler: Function | null = null;
-
-  componentDidMount() {
-    this.props.sdk.window.startAutoResizer();
-
-    // Handler for external field value changes (e.g. when multiple authors are working on the same entry).
-    this.detachExternalChangeHandler = this.props.sdk.field.onValueChanged(this.onExternalChange);
-  }
-
-  componentWillUnmount() {
-    if (this.detachExternalChangeHandler) {
-      this.detachExternalChangeHandler();
-    }
-  }
-
-  onExternalChange = (value: string) => {
-    this.setState({ value });
-  };
-
-  onChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.currentTarget.value;
-    this.setState({ value });
-    if (value) {
-      await this.props.sdk.field.setValue(value);
-    } else {
-      await this.props.sdk.field.removeValue();
-    }
-  };
-
-  render = () => {
-    return (
-      <TextInput
-        width="large"
-        type="text"
-        id="my-field"
-        testId="my-field"
-        value={this.state.value}
-        onChange={this.onChange}
-      />
-    );
-  };
-}
+  return (
+    <TextInput
+      width="large"
+      type="text"
+      id="my-field"
+      testId="my-field"
+      value={value}
+      onChange={onChange}
+    />
+  );
+};
 
 init(sdk => {
   render(<App sdk={sdk as FieldExtensionSDK} />, document.getElementById('root'));
@@ -75,3 +87,16 @@ init(sdk => {
 // if (module.hot) {
 //   module.hot.accept();
 // }
+
+interface AppMain {
+  sdk: FieldExtensionSDK;
+  value?: string;
+}
+
+interface AppProps {
+  sdk: FieldExtensionSDK;
+}
+
+interface AppState {
+  value?: string;
+}
