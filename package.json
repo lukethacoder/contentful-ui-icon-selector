@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "yarn start",
-    "start": "contentful-extension-scripts start",
+    "start": "contentful-extension-scripts start --https",
     "build": "contentful-extension-scripts build",
     "lint": "eslint ./ --ext .js,.jsx,.ts,.tsx",
     "test": "contentful-extension-scripts test --env=jsdom --watch",
