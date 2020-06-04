@@ -9,6 +9,7 @@ export const Caravan: React.FC = () => (
     role="img"
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 640 512"
+    style={{ width: '100%', height: '100%' }}
     className="svg-inline--fa fa-caravan fa-w-20 fa-3x">
     <path
       fill="currentColor"

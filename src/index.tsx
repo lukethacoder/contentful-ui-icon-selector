@@ -1,69 +1,59 @@
 import * as React from 'react';
 import { render } from 'react-dom';
-import {
-  TextInput,
-  Dropdown,
-  Button,
-  DropdownList,
-  DropdownListItem
-} from '@contentful/forma-36-react-components';
+import Select, { components } from 'react-select';
 import { init, FieldExtensionSDK } from 'contentful-ui-extensions-sdk';
-import '@contentful/forma-36-react-components/dist/styles.css';
 import './index.css';
 
 import { Caravan, FighterJet, Pram, ShoppingCart, Truck } from './icons';
 
+const ICON_COLOR = '#878787';
+
 const ICONS: IconItem[] = [
   {
-    title: 'Caravan',
-    id: 'CARAVAN',
+    label: 'Caravan',
+    value: 'CARAVAN',
     svg: Caravan
   },
   {
-    title: 'Fighter Jet',
-    id: 'FIGHTER_JET',
+    label: 'Fighter Jet',
+    value: 'FIGHTER_JET',
     svg: FighterJet
   },
   {
-    title: 'Pram',
-    id: 'PRAM',
+    label: 'Pram',
+    value: 'PRAM',
     svg: Pram
   },
   {
-    title: 'Shopping Cart',
-    id: 'SHOPPING_CART',
+    label: 'Shopping Cart',
+    value: 'SHOPPING_CART',
     svg: ShoppingCart
   },
   {
-    title: 'Truck',
-    id: 'TRUCK',
+    label: 'Truck',
+    value: 'TRUCK',
     svg: Truck
   }
 ];
 
 const App: React.FC<AppMain> = props => {
-  console.log('props ', props);
-
-  const [value_number_one, setValueNumberOne] = React.useState('');
-  const [value_number_two, setValueNumberTwo] = React.useState('');
+  const [iconName, setIconName] = React.useState('');
   const [isOpen, setIsOpen] = React.useState(false);
+  const [activeIconObj, setActiveIconObj] = React.useState({});
 
   let detachExternalChangeHandler: Function | null = null;
 
   function onExternalChange(value: any) {
     if (value) {
-      setValueNumberOne(value.value);
-      setValueNumberTwo(value.value_two);
+      setIconName(value);
     }
   }
 
   React.useEffect(() => {
-    props.sdk.window.startAutoResizer();
     let initial_value = props.sdk.field.getValue();
 
     if (initial_value) {
-      setValueNumberOne(initial_value.value);
-      setValueNumberTwo(initial_value.value_two);
+      setIconName(initial_value);
     }
 
     // Handler for external field value changes (e.g. when multiple authors are working on the same entry).
@@ -72,70 +62,77 @@ const App: React.FC<AppMain> = props => {
     }
   }, []);
 
-  async function onChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const current_value = e.currentTarget.value;
-    setValueNumberOne(current_value);
+  React.useEffect(() => {
+    props.sdk.window.updateHeight(420);
+  }, [isOpen]);
+
+  const { Option } = components;
+  const select_ref = React.useRef();
+
+  async function handleChangeIcon(e: any) {
+    let current_value = e.value;
+    setIconName(current_value);
+
+    let icon_obj = ICONS.find(icon => icon.value === current_value);
+    setActiveIconObj(icon_obj);
+
+    setIsOpen(false);
 
     if (current_value) {
-      await props.sdk.field.setValue({ value: current_value, value_two: value_number_two });
+      await props.sdk.field.setValue(current_value);
     } else {
       await props.sdk.field.removeValue();
     }
   }
 
-  async function onChangeTwo(e: React.ChangeEvent<HTMLInputElement>) {
-    const current_value = e.currentTarget.value;
-    setValueNumberTwo(current_value);
-
-    if (current_value) {
-      await props.sdk.field.setValue({ value: value_number_one, value_two: current_value });
-    } else {
-      await props.sdk.field.removeValue();
-    }
+  function handleClickSelect(e: any) {
+    setIsOpen(!isOpen);
+    props.sdk.window.updateHeight();
   }
+
+  const IconOption = props => (
+    <Option {...props}>
+      <div
+        style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', cursor: 'pointer' }}>
+        <div
+          style={{
+            width: '24px',
+            height: '24px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: ICON_COLOR
+          }}>
+          <props.data.svg />
+        </div>
+        <p style={{ marginLeft: '8px' }}>{props.data.label}</p>
+      </div>
+    </Option>
+  );
 
   return (
     <React.Fragment>
-      <TextInput
-        width="large"
-        type="text"
-        id="value-juan"
-        value={value_number_one}
-        onChange={onChange}
-      />
-      <TextInput
-        width="large"
-        type="text"
-        id="value-two"
-        value={value_number_two}
-        onChange={onChangeTwo}
-      />
+      {activeIconObj ? JSON.stringify(activeIconObj) : 'choose an icon'}
+      <p>test: {iconName}</p>
 
-      <Dropdown
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-        key={Date.now()} // Force Reinit
-        style={{ minHeight: '242px' }}
-        position="bottom-left"
-        toggleElement={
-          <Button
-            size="small"
-            buttonType="muted"
-            isFullWidth={true}
-            indicateDropdown
-            onClick={() => setIsOpen(!isOpen)}>
-            Choose Icon
-          </Button>
-        }>
-        <DropdownList maxHeight={175}>
-          {ICONS.map(icon => (
-            <DropdownListItem key={icon.id} onClick={e => console.log(e.currentTarget.value)}>
-              {/* <icon.svg/> */}
-              {icon.title}
-            </DropdownListItem>
-          ))}
-        </DropdownList>
-      </Dropdown>
+      <Select
+        value={activeIconObj}
+        menuIsOpen={isOpen}
+        onFocus={handleClickSelect}
+        onChange={handleChangeIcon}
+        options={ICONS}
+        isSearchable
+        ref={select_ref}
+        components={{ Option: IconOption }}
+        theme={theme => ({
+          ...theme,
+          borderRadius: 0,
+          colors: {
+            ...theme.colors,
+            primary: '#4a90e2'
+          }
+        })}
+      />
     </React.Fragment>
   );
 };
@@ -158,7 +155,7 @@ interface AppMain {
 }
 
 interface IconItem {
-  title: string;
-  id: string;
+  label: string;
+  value: string;
   svg: React.FC;
 }

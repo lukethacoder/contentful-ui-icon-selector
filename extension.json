@@ -3,6 +3,6 @@
   "name": "icon-selector",
   "srcdoc": "./build/index.html",
   "fieldTypes": [
-    "Object"
+    "Symbol"
   ]
 }
