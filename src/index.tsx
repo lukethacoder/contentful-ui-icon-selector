@@ -1,145 +1,170 @@
-import * as React from 'react';
-import { render } from 'react-dom';
-import Select, { components } from 'react-select';
-import { init, FieldExtensionSDK } from 'contentful-ui-extensions-sdk';
-import './index.css';
+import * as React from 'react'
+import { render } from 'react-dom'
+import { init, FieldExtensionSDK } from 'contentful-ui-extensions-sdk'
+import Select, { components } from 'react-select'
 
-import { Caravan, FighterJet, Pram, ShoppingCart, Truck } from './icons';
+import './index.css'
+import { ICONS, IconItem } from './icons'
 
-const ICON_COLOR = '#878787';
+/* Config */
+const ICON_COLOR: string = '#878787'
+const ICON_SIZE: string = '24px'
+const LABEL_LEFT_MARGIN: string = '8px'
+const DROP_DOWN_MAX_HEIGHT: number = 248
 
-const ICONS: IconItem[] = [
-  {
-    label: 'Caravan',
-    value: 'CARAVAN',
-    svg: Caravan
-  },
-  {
-    label: 'Fighter Jet',
-    value: 'FIGHTER_JET',
-    svg: FighterJet
-  },
-  {
-    label: 'Pram',
-    value: 'PRAM',
-    svg: Pram
-  },
-  {
-    label: 'Shopping Cart',
-    value: 'SHOPPING_CART',
-    svg: ShoppingCart
-  },
-  {
-    label: 'Truck',
-    value: 'TRUCK',
-    svg: Truck
-  }
-];
+const findIcon = (icon_name: string) =>
+  ICONS.find((icon) => icon.value === icon_name)
 
-const App: React.FC<AppMain> = props => {
-  const [iconName, setIconName] = React.useState('');
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [activeIconObj, setActiveIconObj] = React.useState({});
+/* Main App */
+export const App: React.FC<AppMain> = (props) => {
+  const [isOpen, setIsOpen] = React.useState(false)
+  const [activeIconObj, setActiveIconObj] = React.useState<
+    IconItem | undefined
+  >(undefined)
 
-  let detachExternalChangeHandler: Function | null = null;
+  const { Option, SingleValue } = components
+  const select_ref = React.useRef()
+  const select_parent_ref = React.useRef()
 
-  function onExternalChange(value: any) {
-    if (value) {
-      setIconName(value);
+  let detachExternalChangeHandler: Function | null = null
+
+  function onExternalChange(external_value: any) {
+    if (external_value) {
+      let icon_obj = findIcon(external_value)
+      setActiveIconObj(icon_obj)
     }
   }
 
   React.useEffect(() => {
-    let initial_value = props.sdk.field.getValue();
+    let initial_value = props.sdk.field.getValue()
 
+    // Set initial value, if there is one
     if (initial_value) {
-      setIconName(initial_value);
+      let icon_obj = findIcon(initial_value)
+
+      // Check the existing value is legit
+      if (icon_obj) {
+        setActiveIconObj(icon_obj)
+      }
     }
 
-    // Handler for external field value changes (e.g. when multiple authors are working on the same entry).
+    /**
+     * Handler for external field value changes
+     * (e.g. when multiple authors are working on the same entry).
+     */
     if (detachExternalChangeHandler === null) {
-      detachExternalChangeHandler = props.sdk.field.onValueChanged(onExternalChange);
+      detachExternalChangeHandler = props.sdk.field.onValueChanged(
+        onExternalChange
+      )
     }
-  }, []);
+  }, [])
 
   React.useEffect(() => {
-    props.sdk.window.updateHeight(420);
-  }, [isOpen]);
-
-  const { Option } = components;
-  const select_ref = React.useRef();
+    // Handle adjusting the height of the wrapper component
+    props.sdk.window.updateHeight(isOpen ? DROP_DOWN_MAX_HEIGHT + 20 : 80)
+  }, [isOpen])
 
   async function handleChangeIcon(e: any) {
-    let current_value = e.value;
-    setIconName(current_value);
+    if (e === null) {
+      setActiveIconObj(undefined)
+      setIsOpen(false)
 
-    let icon_obj = ICONS.find(icon => icon.value === current_value);
-    setActiveIconObj(icon_obj);
-
-    setIsOpen(false);
-
-    if (current_value) {
-      await props.sdk.field.setValue(current_value);
+      await props.sdk.field.removeValue()
     } else {
-      await props.sdk.field.removeValue();
+      let current_value = e.value
+      let icon_obj = ICONS.find((icon) => icon.value === current_value)
+      setActiveIconObj(icon_obj)
+
+      setIsOpen(false)
+
+      if (current_value) {
+        await props.sdk.field.setValue(current_value)
+      } else {
+        await props.sdk.field.removeValue()
+      }
     }
   }
 
-  function handleClickSelect(e: any) {
-    setIsOpen(!isOpen);
-    props.sdk.window.updateHeight();
-  }
-
-  const IconOption = props => (
-    <Option {...props}>
+  /**
+   *
+   * @param props - React Select based props
+   * ref: https://react-select.com/components#replacing-components
+   */
+  const IconAndValue = (props: any) => (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        cursor: 'pointer',
+      }}
+    >
       <div
-        style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', cursor: 'pointer' }}>
-        <div
-          style={{
-            width: '24px',
-            height: '24px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: ICON_COLOR
-          }}>
-          <props.data.svg />
-        </div>
-        <p style={{ marginLeft: '8px' }}>{props.data.label}</p>
+        style={{
+          width: ICON_SIZE,
+          height: ICON_SIZE,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: ICON_COLOR,
+        }}
+      >
+        {props.data.svg ? <props.data.svg /> : null}
       </div>
+      <p style={{ marginLeft: LABEL_LEFT_MARGIN }}>
+        {props.data.label ? props.data.label : ''}
+      </p>
+    </div>
+  )
+
+  const IconOption = (props: any) => (
+    <Option {...props}>
+      <IconAndValue {...props} />
     </Option>
-  );
+  )
+
+  const SingleValueContainer = (props: any) => (
+    <SingleValue {...props}>
+      <IconAndValue {...props} />
+    </SingleValue>
+  )
 
   return (
     <React.Fragment>
-      {activeIconObj ? JSON.stringify(activeIconObj) : 'choose an icon'}
-      <p>test: {iconName}</p>
-
       <Select
         value={activeIconObj}
         menuIsOpen={isOpen}
-        onFocus={handleClickSelect}
+        onFocus={() => setIsOpen(true)}
+        onBlur={() => setIsOpen(false)}
         onChange={handleChangeIcon}
         options={ICONS}
         isSearchable
         ref={select_ref}
-        components={{ Option: IconOption }}
-        theme={theme => ({
+        isClearable={true}
+        components={{
+          Option: IconOption,
+          SingleValue: SingleValueContainer,
+        }}
+        maxMenuHeight={DROP_DOWN_MAX_HEIGHT}
+        theme={(theme: any) => ({
           ...theme,
           borderRadius: 0,
           colors: {
             ...theme.colors,
-            primary: '#4a90e2'
-          }
+            primary: '#4a90e2', // Contentful Blue
+          },
         })}
       />
     </React.Fragment>
-  );
-};
+  )
+}
 
-init(sdk => {
-  render(<App sdk={sdk as FieldExtensionSDK} />, document.getElementById('root'));
-});
+init((sdk) => {
+  render(
+    <App sdk={sdk as FieldExtensionSDK} />,
+    document.getElementById('root')
+  )
+})
 
 /**
  * By default, iframe of the extension is fully reloaded on every save of a source file.
@@ -150,12 +175,6 @@ init(sdk => {
 // }
 
 interface AppMain {
-  sdk: FieldExtensionSDK;
-  value?: string;
-}
-
-interface IconItem {
-  label: string;
-  value: string;
-  svg: React.FC;
+  sdk: FieldExtensionSDK
+  value?: string
 }
